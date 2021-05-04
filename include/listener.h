@@ -13,7 +13,6 @@ class Listener
 {
     net::io_context& ioc;
     net::ip::tcp::acceptor acceptor;
-    std::shared_ptr<Shared_data> shared_data;
 public:
     Listener(net::io_context &_ioc, const unsigned short port);
     ~Listener();

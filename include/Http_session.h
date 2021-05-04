@@ -6,18 +6,19 @@
 #include <boost/beast.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/json/parse.hpp>
 
-#include "Ws_session.h"
+//#include "Ws_session.h"
+#include "session.h"
 
-class Shared_data;
 
 namespace net = boost::asio;
 namespace http = boost::beast::http;
 
+
 class HttpSession: public std::enable_shared_from_this<HttpSession>
 {
     boost::beast::tcp_stream _stream;
-    std::shared_ptr<Shared_data> _sdata;
     boost::beast::flat_buffer _buffer;
     http::request<http::string_body> _request;
     boost::system::error_code ec;
@@ -30,8 +31,10 @@ class HttpSession: public std::enable_shared_from_this<HttpSession>
     http::response<http::string_body> other();
     http::response<http::string_body> createResponse(http::status status, std::string message, http::verb request_method);
 
+    void rawSocketHandler();
+
 public:
-    explicit HttpSession(net::ip::tcp::socket socket, std::shared_ptr<Shared_data> sdata);
+    explicit HttpSession(net::ip::tcp::socket socket);
     ~HttpSession();
     void run();
 

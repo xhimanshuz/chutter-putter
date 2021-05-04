@@ -1,0 +1,229 @@
+// REQUEST - RAW SOCKET DOWNGRADE
+
+{
+    "type": "request",
+    "request": "downgrade",
+    "private_ip": "192.168.1.101",
+    "private_port": 92321,
+    "username": "crimastergogo"
+}
+
+// RESPONSE - DOWNGRADE
+
+{
+    "response": "downgrade",
+    "data": true,
+    "error": false,
+    "message":""
+}
+
+---------------------------------
+// REQUEST - CLIENT LIST
+
+{
+    "type": "request",
+    "request": "clientList"
+}
+
+// RESPONSE - CLIENT LIST
+
+{
+    "type": "response",
+    "response": "clientList",
+    "data": {
+        "clients": [
+            {
+                "name": "anonymous_1",
+                "public_ip": "89.23.1.0",
+                "private_ip": "128.0.0.1",
+                "public_port": 82321,
+                "private_port": 8091
+            },
+            {
+                "name": "xhimanshuz",
+                "public_ip": "123.88.1.0",
+                "private_ip": "192.168.1.101",
+                "public_port": 9211,
+                "private_port": 3889
+            },
+            {
+                "name": "anonymous_2",
+                "public_ip": "183.2.1.100",
+                "private_ip": "129.0.2.1",
+                "public_port": 8291,
+                "private_port": 8060
+            }
+        ]
+    },
+    "error": false,
+    "message":""
+}
+------------------------------------
+// REQUEST - SET PEER DATA
+
+{
+    "type": "request",
+    "request": "setPeerData",
+    "private_ip": "192.168.1.101",
+    "private_port": 92321,
+    "username": "crimastergogo"
+}
+
+// RESPONSE - SET PEER DATA
+
+{
+    "type": "response",
+    "response": "setPeerData",
+    "data": true,
+    "error": false,
+    "message":""
+}
+------------------------------------
+// REQUEST - SET PRIVATE ENDPOINT
+
+{
+    "type": "request",
+    "request": "setPrivateEndpoint",
+    "private_ip": "192.168.1.101",
+    "private_port": "92321"
+}
+
+// RESPONSE - SET PRIVATE ENDPOINT
+
+{
+    "type": "response",
+    "response": "setPrivateEndpoint",
+    "data": true,
+    "error": false,
+    "message":""
+}
+-------------------------------------
+// REQUEST - SET USERNAME
+
+{
+    "type": "request",
+    "request": "setUsername",
+    "username": "crimastergogo"
+}
+
+// RESPONSE - SET USERNAME RETRY
+
+{
+    "type": "response",
+    "response": "setUsername",
+    "data": false,
+    "error": true,
+    "message":"Username crimastergogo not available, Please try again"
+}
+
+// RESPONSE - SET USERNAME SUCCESS
+
+{
+    "type": "response",
+    "response": "setUsername",
+    "data": true,
+    "error": false,
+    "message":""
+}
+---------------------------------------
+// REQUEST - ASK PEER
+
+{
+    "type": "request",
+    "request": "askPeer",
+    "username": "crimastergogo"
+}
+
+// RESPONSE - WAITING FROM CLIENT
+
+{
+    "type": "response",
+    "response": "askPeer",
+    "data": {
+        "status": 2,
+        "peer_data" : {
+            "private_ip": "192.168.1.101",
+            "private_port": "92321",
+            "username": "crimastergogo",
+            "public_ip": "213.123.1.8",
+            "public_port": "3123"
+        }
+    },
+    "error": false,
+    "message":""
+}
+
+// RESPONSE - ACCEPTED
+
+{
+    "type": "response",
+    "response": "askPeer",
+    "data": {
+        "status": 1,
+        "peer_data":
+        {
+            "private_ip": "192.168.1.101",
+            "private_port": "92321",
+            "username": "crimastergogo",
+            "public_ip": "213.123.1.8",
+            "public_port": "3123"
+        }
+    },
+    "error": false,
+    "message":""
+}
+
+// RESPONSE - REJECTED
+
+{
+    "type": "response",
+    "response": "askPeer",
+    "data": {
+        "status": 0,
+        "peer_data":
+        {
+        "private_ip": "192.168.1.101",
+        "private_port": "92321",
+        "username": "crimastergogo",
+        "public_ip": "213.123.1.8",
+        "public_port": "3123"
+    },
+},
+    "error": false,
+    "message":""
+}
+------------------------------------
+// REQUEST - ASK TO ACCEPTED
+
+{
+    "type": "request",
+    "request": "askToAccept",
+    "private_ip": "192.168.1.101",
+    "private_port": "92321",
+    "username": "crimastergogo",
+    "public_ip": "213.123.1.8",
+    "public_port": "3123"
+}
+
+// RESPONSE - ASK to ACCEPTED FROM PEER
+{
+    "type": "response",
+    "response": "askToAccept",
+    "data": true,
+    "error": false,
+    "message": ""
+}
+
+
+// SERVER CONNECT FLOW
+listen() -> asyncAccept()
+                L-> onAsyncRead() -> downgrade() -> new Session()::run() -> handleRequest() <-> downgradeAccept(json)
+                                                                                    L-> -> doWrite(((char*)json) -> onWrite(Response)
+
+// SERVER READ FLOW
+
+doAsyncRead() 
+    L-> onRead() -> handleRequest() -> process() -> doWrite() -> onWrite()
+
+
+

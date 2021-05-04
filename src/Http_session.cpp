@@ -1,6 +1,6 @@
 #include "Http_session.h"
 
-HttpSession::HttpSession(boost::asio::ip::tcp::socket socket, std::shared_ptr<Shared_data> sdata): _stream{std::move(socket)}, _sdata{sdata}
+HttpSession::HttpSession(boost::asio::ip::tcp::socket socket): _stream{std::move(socket)}
 {
     std::cout << "[!] HTTP Session Created, "<< _stream.socket().remote_endpoint() << std::endl;
 }
@@ -16,15 +16,21 @@ void HttpSession::do_read()
                 std::cout << "[!] Connection Closed" << std::endl;
                 return;
             }
+            if(ec == http::error::bad_method)
+            {
+                std::cout <<"[!] Raw Socket Downgrade" << std::endl;
+                std::make_shared<Session>(_stream.release_socket())->run(reinterpret_cast<char*>(_buffer.data().data()));
+                return;
+            }
             std::cout << "Error in reading Socket: "<< ec.message()<< std::endl;
             self->do_read();
         }
-        if(boost::beast::websocket::is_upgrade(self->_request))
+        else if(boost::beast::websocket::is_upgrade(self->_request))
         {
             std::cout <<"[!] WebSocket Upgrade" << std::endl;
-            std::make_shared<WsSession>(std::move(_sdata), _stream.release_socket())->run(std::move(_request));
             return;
         }
+
 
         self->do_write(self->handleRequest());
     });
@@ -42,7 +48,8 @@ void HttpSession::do_write(http::response<http::string_body> _response)
 
 http::response<http::string_body> HttpSession::handleRequest()
 {
-    std::cout << _request << std::endl;
+    auto json = boost::json::parse(_request.body().data() ).as_object().at("type").as_string().data();
+    std::cout << _request.body().data() << std::endl;
 
     switch (_request.method())
     {
@@ -89,6 +96,11 @@ http::response<http::string_body> HttpSession::createResponse(http::status statu
 
     _response.prepare_payload();
     return _response;
+}
+
+void HttpSession::rawSocketHandler()
+{
+    _buffer.data();
 }
 
 HttpSession::~HttpSession()

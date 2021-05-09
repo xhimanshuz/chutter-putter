@@ -22,9 +22,11 @@ void Shared_data::renameSession(const std::string &oldName, const std::string &n
 
 void Shared_data::broadCast(std::string message)
 {
-    for(auto& [name, ws]: sessionsPool)
+    std::cout << "[!] Broadcasting message: "<< message << std::endl;
+    for(auto& [name, session]: sessionsPool)
     {
         std::lock_guard lg(mutex);
+        session->doAsyncWrite(message);
     }
 }
 

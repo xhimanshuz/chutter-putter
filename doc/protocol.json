@@ -29,7 +29,7 @@
 
 {
     "type": "response",
-    "response": "clientList",
+    "response": "f",
     "data": {
         "clients": [
             {
@@ -44,7 +44,7 @@
                 "public_ip": "123.88.1.0",
                 "private_ip": "192.168.1.101",
                 "public_port": 9211,
-                "private_port": 3889
+                "public_port": 3889
             },
             {
                 "name": "anonymous_2",
@@ -197,7 +197,7 @@
 
 {
     "type": "request",
-    "request": "askToAccept",
+    "request": "askPeer",
     "private_ip": "192.168.1.101",
     "private_port": "92321",
     "username": "crimastergogo",
@@ -208,8 +208,11 @@
 // RESPONSE - ASK to ACCEPTED FROM PEER
 {
     "type": "response",
-    "response": "askToAccept",
-    "data": true,
+    "response": "askPeer",
+    "data": {
+        "status": 1,
+        "username": "client1",
+    },
     "error": false,
     "message": ""
 }

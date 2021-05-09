@@ -9,7 +9,7 @@ Session::Session(boost::asio::ip::tcp::socket socket):
 
 }
 
-boost::json::object Session::toJson(char *buff)
+boost::json::object Session::toJson(const std::string &buff)
 {
     auto json = boost::json::parse(buff).as_object();
     auto requset = json.at("type").as_string().data();
@@ -53,7 +53,7 @@ void Session::handleRequest(boost::json::object request)
 
         }
         else if(request_type == "askPeer") {
-            onAskPeer(request, response);
+            return onAskPeer(request, response);
         }
         else
             throw "Invalid Request type" + request_type;
@@ -94,6 +94,9 @@ void Session::doAsyncRead()
 
 void Session::onRead(boost::system::error_code ec, size_t size)
 {
+    std::cout << "[!] onRead:  [ "<< username << " ]"<< _buffer << std::endl;
+    if(ec == net::error::bad_descriptor)
+        std::cout <<"Error Bad Decstiption"<<std::endl;
     if(ec)
         throw "Error Occured: " + ec.message();
 
@@ -112,6 +115,7 @@ void Session::onRead(boost::system::error_code ec, size_t size)
 void Session::doWrite(const std::string &buffer)
 {
     auto size = _socket.write_some(net::buffer(buffer.data(), buffer.size()), ec);
+    std::cout << "[!] doWrite: [ " << username << " ]"<<  buffer << std::endl;
     onWrite(ec, size);
 }
 
@@ -121,12 +125,13 @@ void Session::onWrite(boost::system::error_code ec, size_t size)
         std::cout <<"[!] Writed bytes: "<< size <<std::endl;
     }
     else {
-        throw "Error Occured: " + ec.message();
+        std::cerr << "[x] Error Occured: "<< ec.message() <<std::endl;
     }
 }
 
 void Session::downGradeAccept(boost::json::object &request, std::optional<boost::json::object> &response)
 {
+    std::cout << "[!] downGradeAccept"<<std::endl;
     private_ip = request["private_ip"].as_string().data();
     private_port = request["private_port"].as_int64();
     username = request["username"].as_string().data();
@@ -139,12 +144,14 @@ void Session::downGradeAccept(boost::json::object &request, std::optional<boost:
 void Session::doAsyncWrite(const std::string &buffer)
 {
     _socket.async_write_some(net::buffer(buffer.data(), buffer.size()), std::bind(&Session::onWrite, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+    std::cout <<"[!] SENT: [ " << username << " ]" << buffer <<std::endl;
 }
 
 
 boost::json::object Session::createSuccessResponse(const std::string &responseType)
 {
     boost::json::object json;
+    json["type"] = "response";
     json["response"] = responseType;
     json["data"] = true;
     json["error"] = false;
@@ -155,6 +162,7 @@ boost::json::object Session::createSuccessResponse(const std::string &responseTy
 
 void Session::createSuccessResponse(std::optional<boost::json::object> &response, const std::string &responseType)
 {
+    response->emplace("type", "response");
     response->emplace("response", responseType);
     response->emplace("data", true);
     response->emplace("error", false);
@@ -164,6 +172,7 @@ void Session::createSuccessResponse(std::optional<boost::json::object> &response
 boost::json::object Session::createUnSuccessResponse(const std::string &responseType, const std::string &message)
 {
     boost::json::object json;
+    json["type"] = "response";
     json["response"] = responseType;
     json["data"] = false;
     json["error"] = true;
@@ -174,6 +183,7 @@ boost::json::object Session::createUnSuccessResponse(const std::string &response
 
 void Session::createUnSuccessResponse(std::optional<boost::json::object> &response, const std::string &responseType, const std::string &message)
 {
+    response->emplace("type", "response");
     response->emplace("response", responseType);
     response->emplace("data", false);
     response->emplace("error", true);
@@ -216,6 +226,30 @@ void Session::getClientList(boost::json::object &request, std::optional<boost::j
     response->at("data") = clients;
 }
 
+const std::string Session::getClientList()
+{
+    auto response = std::make_optional<boost::json::object>();
+    createSuccessResponse(response, "clientList");
+
+    boost::json::object clients;
+    boost::json::array clients_array;
+    for(auto& [name, session]: sharedData->getSessionPool())
+    {
+        boost::json::object client;
+        client["name"] = session->username;
+        client["public_ip"] =  session->public_ip;
+        client["public_port"] = session->public_port;
+        client["private_ip"] = session->private_ip;
+        client["private_port"] = session->private_port;
+
+        clients_array.emplace_back(client);
+    }
+    clients["clients"] = clients_array;
+    response->at("data") = clients;
+
+    return jsonToString(response.value());
+}
+
 void Session::onAskPeer(boost::json::object &request, std::optional<boost::json::object> &response)
 {
     createSuccessResponse(response, request["request"].as_string().data());
@@ -252,14 +286,16 @@ void Session::doAskPeer(boost::json::object &response)
 
 void Session::doAskPeerAccept(boost::json::object &response)
 {
-    auto peer_data = response["data"].get_object()["peer_data"].get_object();
-    std::string t_username = peer_data["username"].as_string().c_str();
+    response["response"] = "askPeer";
+    const std::string t_username = response["data"].get_object()["username"].as_string().c_str();
+
+    boost::json::object peer_data;
     peer_data["username"] = username;
     peer_data["private_ip"] = private_ip;
     peer_data["private_port"] = private_port;
     peer_data["public_ip"] = public_ip;
     peer_data["public_port"] = public_port;
-    response["data"].get_object()["peer_data"] = peer_data;
+    response["data"].get_object().emplace("peer_data", peer_data);
 
     sendToUserName(t_username, response);
 }
@@ -282,7 +318,7 @@ void Session::askToAccept(Session* peer)
 {
     boost::json::object json;
     json["type"] = "request";
-    json["request"] = "askToAccept";
+    json["request"] = "askPeer";
     json["private_ip"] =  peer->private_ip;
     json["private_port"] = peer->private_port;
     json["public_ip"] = peer->public_ip;
@@ -315,20 +351,23 @@ inline void Session::cleanBuffer()
 }
 
 
+
 Session::~Session()
 {
     std::cout <<"[~] Session Closed: "<< username << std::endl;
     _socket.close();
 }
 
-void Session::run(char *buff)
+void Session::run(const std::string& buff)
 {
+    std::cout << "[!] Session::run(): " << buff <<std::endl;
     try {
         sharedData = Shared_data::get();
         handleRequest(toJson(buff));
 
         sharedData->addSession(username, this);
         doAsyncRead();
+        sharedData->broadCast(getClientList());
     }
     catch (std::exception& ex)
     {

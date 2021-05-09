@@ -31,14 +31,13 @@ class Session: public std::enable_shared_from_this<Session>
     boost::system::error_code ec;                   // FOR SYNC CALLS
     char _buffer[1024];
 
-    boost::json::object toJson(char *buff);
+    boost::json::object toJson(const std::string& buff);
     boost::json::object toJson();
     void handleRequest(boost::json::object request);
     void handleResponse(boost::json::object response);
     void doAsyncRead();
     void onRead(boost::system::error_code ec, size_t size);
     void doWrite(const std::string& buffer);
-    void doAsyncWrite(const std::string& buffer);
     void onWrite(boost::system::error_code ec, size_t size);
     void downGradeAccept(boost::json::object &request, std::optional<boost::json::object> &response);
     boost::json::object createSuccessResponse(const std::string& responseType);
@@ -51,6 +50,7 @@ class Session: public std::enable_shared_from_this<Session>
 
     void setPeerData(boost::json::object &request, std::optional<boost::json::object> &response);
     void getClientList(boost::json::object &request, std::optional<boost::json::object> &response);
+    const std::string getClientList();
     void onAskPeer(boost::json::object &request, std::optional<boost::json::object> &response);
     void doAskPeer(boost::json::object &response);
     void doAskPeerAccept(boost::json::object &response);
@@ -61,9 +61,10 @@ class Session: public std::enable_shared_from_this<Session>
     void sendToPeer(boost::json::object &json);
     inline void cleanBuffer();
 public:
+    void doAsyncWrite(const std::string& buffer);
     Session(net::ip::tcp::socket socket);
     virtual ~Session();
-    void run(char *buff);
+    void run(const std::string& buff);
 };
 
 #endif // SESSION_H2

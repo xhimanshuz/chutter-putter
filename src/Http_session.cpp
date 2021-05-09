@@ -18,8 +18,10 @@ void HttpSession::do_read()
             }
             if(ec == http::error::bad_method)
             {
-                std::cout <<"[!] Raw Socket Downgrade" << std::endl;
-                std::make_shared<Session>(_stream.release_socket())->run(reinterpret_cast<char*>(_buffer.data().data()));
+                std::cout <<"[!] Raw Socket Downgrade Size: " << _buffer.data().size()<< std::endl;
+                auto buff = reinterpret_cast<char *>(_buffer.data().data());
+                auto s = std::string(buff);
+                std::make_shared<Session>(_stream.release_socket())->run(s);
                 return;
             }
             std::cout << "Error in reading Socket: "<< ec.message()<< std::endl;

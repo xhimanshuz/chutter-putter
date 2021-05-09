@@ -12,7 +12,7 @@ chutter-putter 8000
 # Reference
 Bryan Ford's Paper's  - 
 Peer-to-Peer Communication Across Network Address Translators.
-https://bford.info/pub/net/p2pnat/
+## https://bford.info/pub/net/p2pnat/
 
 # P2P - Client
 ![alt text](https://github.com/xhimanshuz/chutter-putter-client/blob/main/doc/client.png)

@@ -16,7 +16,7 @@ public:
     Shared_data();
     void addSession(std::string_view name, Session* ws);
     void renameSession(const std::string &oldName, const std::string &newName);
-    void broadCast(std::string message);
+    void broadCast(const std::string &username, std::string message);
     void removeSession(const std::string name, Session *ws);
     bool nameAvailable(const std::string &name);
     std::optional<Session *> getByUsername(const std::string &username);

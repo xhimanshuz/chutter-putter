@@ -20,9 +20,9 @@ void Shared_data::renameSession(const std::string &oldName, const std::string &n
     }
 }
 
-void Shared_data::broadCast(std::string message)
+void Shared_data::broadCast(const std::string &username, std::string message)
 {
-    std::cout << "[!] Broadcasting message: "<< message << std::endl;
+    std::cout << "[!] Broadcasting message: ["<<username << "]: "<< message << std::endl;
     for(auto& [name, session]: sessionsPool)
     {
         std::lock_guard lg(mutex);

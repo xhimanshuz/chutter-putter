@@ -94,6 +94,7 @@ void Session::doAsyncRead()
 
 void Session::onRead(boost::system::error_code ec, size_t size)
 {
+    doAsyncRead();
     std::cout << "[!] onRead:  [ "<< username << " ]"<< _buffer << std::endl;
     if(ec == net::error::bad_descriptor)
         std::cout <<"Error Bad Decstiption"<<std::endl;
@@ -109,7 +110,7 @@ void Session::onRead(boost::system::error_code ec, size_t size)
     else
         std::cerr << "[x] Invlaid type"<<std::endl;
 
-    doAsyncRead();
+
 }
 
 void Session::doWrite(const std::string &buffer)
@@ -192,7 +193,7 @@ void Session::createUnSuccessResponse(std::optional<boost::json::object> &respon
 
 std::string Session::jsonToString(boost::json::object &json)
 {
-    return boost::json::serialize(json);
+    return (boost::json::serialize(json)+'\n');
 }
 
 void Session::setPeerData(boost::json::object &request, std::optional<boost::json::object> &response)
@@ -325,7 +326,7 @@ void Session::askToAccept(Session* peer)
     json["public_port"] = peer->public_port;
     json["username"] = peer->username;
 
-    auto serial = boost::json::serialize(json);
+    auto serial = jsonToString(json);
     doAsyncWrite(serial);
 }
 
@@ -367,7 +368,7 @@ void Session::run(const std::string& buff)
 
         sharedData->addSession(username, this);
         doAsyncRead();
-        sharedData->broadCast(getClientList());
+        sharedData->broadCast(username, getClientList());
     }
     catch (std::exception& ex)
     {

@@ -1,5 +1,5 @@
 # chutter-putter
-Asio and Boost.Beast based HTTP and Raw Socket C++ Rendezvous Server to help client locate each and established peer-to-peer connection with TCP NAT Hole Puching technique mentioned in Bryan Ford's Paper's "Peer-to-Peer Communication Across Network Address Translators"
+Asio and Boost.Beast based HTTP and Raw Socket C++ Rendezvous Server to help client locate each and established peer-to-peer connection with TCP NAT Hole Punching technique mentioned in Bryan Ford's Paper's "Peer-to-Peer Communication Across Network Address Translators"
 
 # Build
 
